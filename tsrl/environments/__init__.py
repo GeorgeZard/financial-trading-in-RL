@@ -18,10 +18,10 @@ def resample_bars(period, symbol, path, base=None, field_to_use='trade',variable
     bars = store[symbol]
     store.close()
     if "volume" in bars.columns:
-        bars = bars.resample(period, label='right', closed='right', base=base).agg(
+        bars = bars.resample(period, label='right', closed='right', offset=base).agg(
             {'open': 'first', 'low': 'min', 'high': 'max', 'close': 'last', 'volume':'sum', 'sentiment':'mean'})
     else:
-        bars = bars.resample(period, label='right', closed='right', base=base).agg(
+        bars = bars.resample(period, label='right', closed='right', offset=base).agg(
             {'open': 'first', 'low': 'min', 'high': 'max', 'close': 'last','sentiment':'mean'})
 
     bars['sentiment'] = bars['sentiment'].interpolate('linear')

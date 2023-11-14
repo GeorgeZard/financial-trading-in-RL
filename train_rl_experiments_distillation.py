@@ -186,9 +186,9 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         scaler = [0.01, 0.6, 0.9, 1.1, 1.3, 1.5]
         val_interval = 5
         learning_rate = 5e-4
-        n_teachers = 4
+        n_teachers = 2
         net_size = 32
-        start_training = False
+        start_training = True
         """
         No Distillation
         """
@@ -568,7 +568,7 @@ def test_distillation(exp=None, exp_path=None, data=None, start_training=False, 
     scaler = [0.01, 0.6, 0.9, 1.1, 1.3, 1.5]
     val_interval = 10
     learning_rate = 5e-4
-    n_teachers = 4
+    n_teachers = 1
     # num_teachers = [1,2,3,4,5,6]
     num_teachers = [4]
 
@@ -627,11 +627,11 @@ def test_distillation(exp=None, exp_path=None, data=None, start_training=False, 
             #     3] + 'experiment_online_pkt_many_assets_best_teachers_self' + str(seed) + '/exp_state_dict.pkl'
 
             # Best teachers for online log-pkt distillation
-            exp_path = Path(PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
-                4] + 'experiment_online_log-pkt_many_assets_best_teachers_self' + str(seed)).expanduser()
-            exp = MarketExperiment6(exp_path=exp_path, use_sentiment=False)
-            dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
-                4] + 'experiment_online_log-pkt_many_assets_best_teachers_self' + str(seed) + '/exp_state_dict.pkl'
+            # exp_path = Path(PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
+            #     4] + 'experiment_online_log-pkt_many_assets_best_teachers_self' + str(seed)).expanduser()
+            # exp = MarketExperiment6(exp_path=exp_path, use_sentiment=False)
+            # dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
+            #     4] + 'experiment_online_log-pkt_many_assets_best_teachers_self' + str(seed) + '/exp_state_dict.pkl'
 
             # exp_path = Path(PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[7]+ 'experiment_self_online_dist_many_assets_for_'+str(n_epochs_instance)+"_seed_" + str(seed)).expanduser()
             # exp = MarketExperiment3(exp_path=exp_path, use_sentiment=False)
@@ -1256,7 +1256,7 @@ def get_data(coin_list):
     # coin_list = ['BTCUSDT', 'ETCUSDT', 'ADAUSDT', 'ATOMUSDT', 'AVAXUSDT', 'LTCUSDT', 'BCHUSDT', 'DOTUSDT']
     # PATH_TO_FEATHER = '../data/Crypto/minute_binance'
     # PATH_TO_FEATHER = 'sample_data/'
-    PATH_TO_FEATHER = '/Users/georg/Source/Github/Thesis/minute_binance/'
+    PATH_TO_FEATHER = '/Users/georg/Source/Github/Thesis/financial-trading-in-RL/data/CryptoSentiment/'
     index_col = 'date'
     # RESAMPLE = '30T'
     resample = '1H'
@@ -1291,9 +1291,9 @@ def get_data(coin_list):
 
 def compute_avg_pnl(detailed_pnls, coin_list_size=17):
     # coin_list_size=1
-    avg_train_pnl = pd.Series(detailed_pnls['ADAUSDT']['train_pnl'] * 0)
-    avg_test_pnl = pd.Series(detailed_pnls['ADAUSDT']['test_pnl'] * 0)
-    avg_only_test_pnl = pd.Series(detailed_pnls['ADAUSDT']['test_pnl']*0)
+    avg_train_pnl = pd.Series(detailed_pnls['BTCUSDT']['train_pnl'] * 0)
+    avg_test_pnl = pd.Series(detailed_pnls['BTCUSDT']['test_pnl'] * 0)
+    avg_only_test_pnl = pd.Series(detailed_pnls['BTCUSDT']['test_pnl']*0)
     for pair, pnls in detailed_pnls.items():
         train_pnl = pnls['train_pnl'].cumsum()
         avg_train_pnl = avg_train_pnl.add(train_pnl, fill_value=0)
@@ -1362,11 +1362,12 @@ if __name__ == '__main__':
     # print(data['candle_df_dict']['BTCUSDT'])
     # just_testing(data)
     # pkt_test(data, coin_list_size)
-    seed = 0
+    
     # testing(data, start_training=False, seed=seed, coin_list_size=coin_list_size, env_params=env_params, model_params=model_params)
-    # seed = random.randint(5, 1000)
-    # print(seed)
-    # test_distillations(data, start_training=False, seed=seed, coin_list_size=coin_list_size, env_params=env_params, model_params=model_params)
+    seed = 0
+    seed = random.randint(5, 1000)
+    print(seed)
+    test_distillations(data, start_training=False, seed=seed, coin_list_size=coin_list_size, env_params=env_params, model_params=model_params)
     # test_kernels(data, coin_list, start_training=True, coin_list_size=coin_list_size, env_params=env_params, model_params=model_params,seed=1)
     # fetch_model_data(filename='test')
     # compute_std(filename='test')
@@ -1374,15 +1375,15 @@ if __name__ == '__main__':
     """
     Testing different runs with different seeds for each run
     """
-    # seed = 0
-    # seed = random.randint(0,1000)
+    seed = 0
+    seed = random.randint(0,1000)
     # Visualizations.visualize_asset(data['candle_df_dict']['BTCUSDT'], 'BTCUSDT')
-    #
+    
     # exp_path1 = Path(PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[0]+ 'experiment_no_distillation_many_assets_debugg' + str(seed)).expanduser()
     # exp1 = MarketExperiment1(exp_path=exp_path1, use_sentiment=False)
     # dir1 = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[0]+'experiment_no_distillation_many_assets_debugg' + str(seed) + '/exp_state_dict.pkl'
     # title1 = 'No distillation'
-    #
+    
     # exp_path2 = Path(PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[1]+'experiment_offline_distillation_many_assets_beta_values' + str(seed)).expanduser()
     # exp2 = MarketExperiment2(exp_path=exp_path2, use_sentiment=False)
     # dir2 = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[1]+'experiment_offline_distillation_many_assets_beta_values' + str(seed) + '/exp_state_dict.pkl'
@@ -1405,18 +1406,18 @@ if __name__ == '__main__':
     # title6 = 'Online logit-pkt distillation'
 
 
-    kernel_parameters = {'student': 'combined', 'teacher': 'combined', 'loss': 'combined'}
+    # kernel_parameters = {'student': 'combined', 'teacher': 'combined', 'loss': 'combined'}
 
     # exp_path1 = Path(PATH_EXPERIMENTS + 'experiment_num_teachers_for_offline_distillation' + str(seed)).expanduser()
     # exp1 = MarketExperiment2(exp_path=exp_path1, use_sentiment=False)
     # dir1 = PATH_EXPERIMENTS + 'experiment_num_teachers_for_offline_distillation' + str(seed) + '/exp_state_dict.pkl'
 
-    # exp_path1 = Path(PATH_EXPERIMENTS + 'experiment_num_teachers_for_online_distillation' + str(seed)).expanduser()
-    # exp1 = MarketExperiment3(exp_path=exp_path1, use_sentiment=False)
-    # dir1 = PATH_EXPERIMENTS + 'experiment_num_teachers_for_online_distillation' + str(seed) + '/exp_state_dict.pkl'
-    # title1 = 'online distillation'
-    # test_distillation(data=data, start_training=True, seed=seed, coin_list_size=coin_list_size,
-    #                  env_params=env_params, model_params=model_params, kernel_parameters=kernel_parameters, offline=False)
+    # # exp_path1 = Path(PATH_EXPERIMENTS + 'experiment_num_teachers_for_online_distillation' + str(seed)).expanduser()
+    # # exp1 = MarketExperiment3(exp_path=exp_path1, use_sentiment=False)
+    # # dir1 = PATH_EXPERIMENTS + 'experiment_num_teachers_for_online_distillation' + str(seed) + '/exp_state_dict.pkl'
+    # # title1 = 'online distillation'
+    # test_distillation(exp=exp1 , exp_path= exp_path1,data=data, start_training=True, seed=seed, coin_list_size=coin_list_size,
+    #                  env_params=env_params, model_params=model_params, kernel_parameters=kernel_parameters, offline=True)
 
 
 
