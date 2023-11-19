@@ -450,7 +450,7 @@ class MarketExperiment4(TorchExperiment):
                     train_eval_list =[]
                     model_seed = seed + 1
                     for key, value in list(model_dict.items()):
-                        value.train().cuda()
+                        value.train().cpu()
 
                         opt_dict[key].zero_grad(set_to_none=True)
 
