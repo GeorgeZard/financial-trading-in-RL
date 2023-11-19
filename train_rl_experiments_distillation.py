@@ -192,24 +192,24 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         """
         No Distillation
         """
-        print('--------------------- No Distillation ---------------------')
-        if  start_training:
-            exp1.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
-                      ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
-                      tau=0.95, env_step_init=1.0,
-                      n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
-                      entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                      lr=learning_rate, lookahead=False,
-                      # advantage_type='exponential',
-                      advantage_type='direct_reward',
-                      gamma=0.99,
-                      n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, seed=seed)
+        # print('--------------------- No Distillation ---------------------')
+        # if  start_training:
+        #     exp1.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
+        #               ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
+        #               tau=0.95, env_step_init=1.0,
+        #               n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
+        #               entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #               lr=learning_rate, lookahead=False,
+        #               # advantage_type='exponential',
+        #               advantage_type='direct_reward',
+        #               gamma=0.99,
+        #               n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, seed=seed)
 
-        # 6) Let's check the agent's performance
-        dir = PATH_EXPERIMENTS+PATH_DISTILLATION_NAMES[0]+'experiment_no_distillation_many_assets_testing'+str(seed)+'/exp_state_dict.pkl'
-        print(dir)
-        # data, exp, exp_path, fig, fig_avg_pnl, dir = '', train_end = '2022', coin_list_size = 17, save_models = [], mul_runs = False, scaler = []
-        evaluation(data, exp1, exp_path1, fig1, fig_avg_pnl, dir, train_end, coin_list_size, no_dist_dict, mul_runs=mul_runs, scaler=scaler, scaler_pot=0)
+        # # 6) Let's check the agent's performance
+        # dir = PATH_EXPERIMENTS+PATH_DISTILLATION_NAMES[0]+'experiment_no_distillation_many_assets_testing'+str(seed)+'/exp_state_dict.pkl'
+        # print(dir)
+        # # data, exp, exp_path, fig, fig_avg_pnl, dir = '', train_end = '2022', coin_list_size = 17, save_models = [], mul_runs = False, scaler = []
+        # evaluation(data, exp1, exp_path1, fig1, fig_avg_pnl, dir, train_end, coin_list_size, no_dist_dict, mul_runs=mul_runs, scaler=scaler, scaler_pot=0)
 
         """
         Offline Distillation
@@ -226,7 +226,7 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
             dropout=0.2
         )
 
-        if start_training:
+        if not start_training:
             exp2.teacher_train(data, teacher_model_params=teacher_model_params, env_params=env_params,
                               train_range=("2000", "2021-03-14"),
                               ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
@@ -271,7 +271,7 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         """
         Offline pkt distillation
         """
-        if not start_training:
+        if start_training:
             exp5.teacher_train(data, teacher_model_params=teacher_model_params, env_params=env_params,
                                train_range=("2000", "2021-03-14"),
                                ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6.,
@@ -546,12 +546,12 @@ def evaluation(data, exp, exp_path, fig, fig_avg_pnl, dir='', train_end='2022', 
 
         # Visualizations.visualize_test(avg_only_test_pnl, 'Average test pnl for Different Types of Distillations',
         #                               title, scaler[scaler_pot])
-        if scaler_pot==0:
-            Visualizations.visualize_chrome_avg_pnl(fig_avg_pnl, avg_only_test_pnl, title, pot=scaler_pot)
-        else:
-            Visualizations.visualize_chrome_avg_pnl(fig_avg_pnl, avg_only_test_pnl, title, pot=scaler_pot+1)
+        # if scaler_pot==0:
+        #     Visualizations.visualize_chrome_avg_pnl(fig_avg_pnl, avg_only_test_pnl, title, pot=scaler_pot)
+        # else:
+        #     Visualizations.visualize_chrome_avg_pnl(fig_avg_pnl, avg_only_test_pnl, title, pot=scaler_pot+1)
 
-        fig.write_html(f'{exp_path}/figure.html')
+        # fig.write_html(f'{exp_path}/figure.html')
         # fig_avg_pnl.show()
         # break
         # fig1.show()
