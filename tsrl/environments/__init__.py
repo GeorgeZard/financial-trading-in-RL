@@ -101,7 +101,7 @@ def generate_candle_features(train_end, timescale: str, pairs: Optional[List[str
     print(len(candle_dict))
     feature_dict = construct_features(candle_dict, train_end, feature_config=feature_config)
     asset_index = dict()
-    print(feature_dict['BTCUSDT'].columns)
+    # print(feature_dict['BTCUSDT'].columns)
     for k in feature_dict.keys():
         idx: np.ndarray = np.array(feature_dict[k].index.to_pydatetime(), dtype=np.datetime64)
         assert (idx == candle_dict[k].index).all()

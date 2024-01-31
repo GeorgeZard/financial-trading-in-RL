@@ -25,9 +25,9 @@ import warnings
 warnings.filterwarnings('ignore')
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-PATH_EXPERIMENTS = 'saved_models_experiments/'
+PATH_EXPERIMENTS = '/Users/georg/Source/Github/Thesis/financial-trading-in-RL/saved_models_experiments/'
 
-PATH_FIGURES = 'experiments_figures/'
+PATH_FIGURES = '/Users/georg/Source/Github/Thesis/financial-trading-in-RL/experiments_figures/'
 
 PATH_DISTILLATION_NAMES = ['no_distillation/', 'offline_distillation2/', 'online_distillation/', 'online_pkt/', 'online_pkt_logits/', 'others/', 'offline_pkt/']
 
@@ -125,29 +125,29 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         print(f"------------------------------ Test {i+1} ------------------------------")
         seed = item
         # seed = seed
-        fig1 = go.FigureWidget()
-        # fig1.layout.title = 'No distillation'
-        add_title(fig1, 'No distillation', 1200)
+        # fig1 = go.FigureWidget()
+        # # fig1.layout.title = 'No distillation'
+        # add_title(fig1, 'No distillation', 1200)
 
-        fig2 = go.FigureWidget()
-        # fig2.layout.title = 'Offline distillation'
-        add_title(fig2, 'Offline distillation', 1200)
+        # fig2 = go.FigureWidget()
+        # # fig2.layout.title = 'Offline distillation'
+        # add_title(fig2, 'Offline distillation', 1200)
 
-        fig3 = go.FigureWidget()
-        # fig3.layout.title = 'Online distillation'
-        add_title(fig3, 'Online distillation', 1200)
+        # fig3 = go.FigureWidget()
+        # # fig3.layout.title = 'Online distillation'
+        # add_title(fig3, 'Online distillation', 1200)
 
         fig4 = go.FigureWidget()
         # fig4.layout.title = 'Online PKT distillation'
         add_title(fig4, 'Online PKT distillation', 1200)
 
-        fig5 = go.FigureWidget()
-        # fig5.layout.title = 'Offline PKT distillation'
-        add_title(fig5, 'Offline PKT distillation', 1200)
+        # fig5 = go.FigureWidget()
+        # # fig5.layout.title = 'Offline PKT distillation'
+        # add_title(fig5, 'Offline PKT distillation', 1200)
 
-        fig6 = go.FigureWidget()
-        # fig6.layout.title = 'Online PKT-Logits distillation'
-        add_title(fig6, 'Online PKT-logits distillation', 1200)
+        # fig6 = go.FigureWidget()
+        # # fig6.layout.title = 'Online PKT-Logits distillation'
+        # add_title(fig6, 'Online PKT-logits distillation', 1200)
 
 
 
@@ -186,12 +186,12 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         scaler = [0.01, 0.6, 0.9, 1.1, 1.3, 1.5]
         val_interval = 5
         learning_rate = 5e-4
-        n_teachers = 2
+        num_teachers = 4
         net_size = 32
         start_training = True
-        """
-        No Distillation
-        """
+        # """
+        # No Distillation
+        # """
         # print('--------------------- No Distillation ---------------------')
         # if  start_training:
         #     exp1.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
@@ -211,145 +211,145 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         # # data, exp, exp_path, fig, fig_avg_pnl, dir = '', train_end = '2022', coin_list_size = 17, save_models = [], mul_runs = False, scaler = []
         # evaluation(data, exp1, exp_path1, fig1, fig_avg_pnl, dir, train_end, coin_list_size, no_dist_dict, mul_runs=mul_runs, scaler=scaler, scaler_pot=0)
 
-        """
-        Offline Distillation
-        """
-        print('--------------------- Offline Distillation ---------------------')
-        # 3) Let's set parameters for our teacher model (LSTM)
-        net_size = 128
-        teacher_model_params = dict(
-            combine_policy_value=False,
-            nb_actions=3,
-            lstm_size=net_size,
-            actor_size=[net_size],
-            critic_size=[net_size],
-            dropout=0.2
-        )
+        # """
+        # Offline Distillation
+        # """
+        # print('--------------------- Offline Distillation ---------------------')
+        # # 3) Let's set parameters for our teacher model (LSTM)
+        # net_size = 128
+        # teacher_model_params = dict(
+        #     combine_policy_value=False,
+        #     nb_actions=3,
+        #     lstm_size=net_size,
+        #     actor_size=[net_size],
+        #     critic_size=[net_size],
+        #     dropout=0.2
+        # )
 
-        if not start_training:
-            exp2.teacher_train(data, teacher_model_params=teacher_model_params, env_params=env_params,
-                              train_range=("2000", "2021-03-14"),
-                              ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
-                              tau=0.95, env_step_init=1.0,
-                              n_epochs=n_epochs, validation_interval=502, show_progress=True, weight_decay=0.,
-                              entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                              lr=learning_rate, lookahead=False,
-                              # advantage_type='exponential',
-                              advantage_type='direct_reward',
-                              gamma=0.99,
-                              n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, seed=seed, n_teachers=n_teachers)
+        # if not start_training:
+        #     exp2.teacher_train(data, teacher_model_params=teacher_model_params, env_params=env_params,
+        #                       train_range=("2000", "2021-03-14"),
+        #                       ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
+        #                       tau=0.95, env_step_init=1.0,
+        #                       n_epochs=n_epochs, validation_interval=502, show_progress=True, weight_decay=0.,
+        #                       entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #                       lr=learning_rate, lookahead=False,
+        #                       # advantage_type='exponential',
+        #                       advantage_type='direct_reward',
+        #                       gamma=0.99,
+        #                       n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, seed=seed, n_teachers=n_teachers)
 
-            # 3) Let's set parameters for our student model (LSTM)
-            net_size = 32
-            model_params = dict(
-                combine_policy_value=False,
-                nb_actions=3,
-                lstm_size=net_size,
-                actor_size=[net_size],
-                critic_size=[net_size],
-                dropout=0.2
-            )
+        #     # 3) Let's set parameters for our student model (LSTM)
+        #     net_size = 32
+        #     model_params = dict(
+        #         combine_policy_value=False,
+        #         nb_actions=3,
+        #         lstm_size=net_size,
+        #         actor_size=[net_size],
+        #         critic_size=[net_size],
+        #         dropout=0.2
+        #     )
 
-            # print("Student Training")
+        #     # print("Student Training")
 
-            exp2.student_train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
-                              ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
-                              tau=0.95, env_step_init=1.0,
-                              n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
-                              entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                              lr=learning_rate, lookahead=False,
-                              # advantage_type='exponential',
-                              advantage_type='direct_reward',
-                              gamma=0.99,
-                              n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, teacher_output=0, beta=beta, seed=seed)
+        #     exp2.student_train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
+        #                       ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
+        #                       tau=0.95, env_step_init=1.0,
+        #                       n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
+        #                       entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #                       lr=learning_rate, lookahead=False,
+        #                       # advantage_type='exponential',
+        #                       advantage_type='direct_reward',
+        #                       gamma=0.99,
+        #                       n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, teacher_output=0, beta=beta, seed=seed)
 
-        # 6) Let's check the agent's performance
-        dir = PATH_EXPERIMENTS+PATH_DISTILLATION_NAMES[1]+'experiment_offline_distillation_many_assets_testing'+str(seed)+'/exp_state_dict.pkl'
-        print(dir)
-        evaluation(data, exp2, exp_path2, fig2, fig_avg_pnl, dir, train_end, coin_list_size, offline_dist_dict, scaler= scaler,mul_runs=mul_runs, scaler_pot=1, title='offline  distillation')
+        # # 6) Let's check the agent's performance
+        # dir = PATH_EXPERIMENTS+PATH_DISTILLATION_NAMES[1]+'experiment_offline_distillation_many_assets_testing'+str(seed)+'/exp_state_dict.pkl'
+        # print(dir)
+        # evaluation(data, exp2, exp_path2, fig2, fig_avg_pnl, dir, train_end, coin_list_size, offline_dist_dict, scaler= scaler,mul_runs=mul_runs, scaler_pot=1, title='offline  distillation')
 
-        """
-        Offline pkt distillation
-        """
-        if start_training:
-            exp5.teacher_train(data, teacher_model_params=teacher_model_params, env_params=env_params,
-                               train_range=("2000", "2021-03-14"),
-                               ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6.,
-                               truncate_bptt=(5, 20),
-                               tau=0.95, env_step_init=1.0,
-                               n_epochs=int(n_epochs / 2), validation_interval=502, show_progress=True, weight_decay=0.,
-                               entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                               lr=learning_rate, lookahead=False,
-                               # advantage_type='exponential',
-                               advantage_type='direct_reward',
-                               gamma=0.99,
-                               n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, seed=seed, n_teachers=n_teachers)
+        # """
+        # Offline pkt distillation
+        # """
+        # if start_training:
+        #     exp5.teacher_train(data, teacher_model_params=teacher_model_params, env_params=env_params,
+        #                        train_range=("2000", "2021-03-14"),
+        #                        ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6.,
+        #                        truncate_bptt=(5, 20),
+        #                        tau=0.95, env_step_init=1.0,
+        #                        n_epochs=int(n_epochs / 2), validation_interval=502, show_progress=True, weight_decay=0.,
+        #                        entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #                        lr=learning_rate, lookahead=False,
+        #                        # advantage_type='exponential',
+        #                        advantage_type='direct_reward',
+        #                        gamma=0.99,
+        #                        n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, seed=seed, n_teachers=n_teachers)
 
-            # print("Student Training")
-            exp5.student_train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
-                               ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6.,
-                               truncate_bptt=(5, 20),
-                               tau=0.95, env_step_init=1.0,
-                               n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
-                               entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                               lr=learning_rate, lookahead=False,
-                               # advantage_type='exponential',
-                               advantage_type='direct_reward',
-                               gamma=0.99,
-                               n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, teacher_output=0, seed=seed)
+        #     # print("Student Training")
+        #     exp5.student_train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
+        #                        ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6.,
+        #                        truncate_bptt=(5, 20),
+        #                        tau=0.95, env_step_init=1.0,
+        #                        n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
+        #                        entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #                        lr=learning_rate, lookahead=False,
+        #                        # advantage_type='exponential',
+        #                        advantage_type='direct_reward',
+        #                        gamma=0.99,
+        #                        n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=False, teacher_output=0, seed=seed)
 
-        # 6) Let's check the agent's performance
-        dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
-            6] + 'experiment_offline_pkt_distillation_many_assets_testing' + str(seed) + '/exp_state_dict.pkl'
-        print(dir)
-        evaluation(data, exp5, exp_path5, fig5, fig_avg_pnl, dir, train_end, coin_list_size, offline_dist_dict,
-                   scaler=scaler, mul_runs=mul_runs, scaler_pot=1, title='offline PKT')
+        # # 6) Let's check the agent's performance
+        # dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
+        #     6] + 'experiment_offline_pkt_distillation_many_assets_testing' + str(seed) + '/exp_state_dict.pkl'
+        # print(dir)
+        # evaluation(data, exp5, exp_path5, fig5, fig_avg_pnl, dir, train_end, coin_list_size, offline_dist_dict,
+        #            scaler=scaler, mul_runs=mul_runs, scaler_pot=1, title='offline PKT')
 
 
-        """
-        Online Distillation
-        """
-        print('--------------------- Online Distillation ---------------------')
-        if  start_training:
-            exp3.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
-                      ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
-                      tau=0.95, env_step_init=1.0,
-                      n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
-                      entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                      lr=learning_rate, lookahead=False,
-                      # advantage_type='exponential',
-                      advantage_type='direct_reward',
-                      gamma=0.99,
-                      n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, beta=10, n_teachers=n_teachers, seed=seed, self_distillation=False)
+        # """
+        # Online Distillation
+        # """
+        # print('--------------------- Online Distillation ---------------------')
+        # if  start_training:
+        #     exp3.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
+        #               ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
+        #               tau=0.95, env_step_init=1.0,
+        #               n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
+        #               entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #               lr=learning_rate, lookahead=False,
+        #               # advantage_type='exponential',
+        #               advantage_type='direct_reward',
+        #               gamma=0.99,
+        #               n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, beta=10, n_teachers=n_teachers, seed=seed, self_distillation=False)
 
-        # 6) Let's check the agent's performance
-        dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[2]+'experiment_online_distillation_many_assets_testing'+str(seed)+'/exp_state_dict.pkl'
-        # dir = PATH_EXPERIMENTS + NO_STEP +PATH_DISTILLATION_NAMES[2]+'experiment_online_distillation_many_assets'+str(seed)+'/exp_state_dict.pkl'
-        print(dir)
-        evaluation(data, exp3, exp_path3, fig3, fig_avg_pnl, dir, train_end, coin_list_size, online_dist_dict, mul_runs=mul_runs, scaler= scaler, scaler_pot=2, title='Online distillation')
+        # # 6) Let's check the agent's performance
+        # dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[2]+'experiment_online_distillation_many_assets_testing'+str(seed)+'/exp_state_dict.pkl'
+        # # dir = PATH_EXPERIMENTS + NO_STEP +PATH_DISTILLATION_NAMES[2]+'experiment_online_distillation_many_assets'+str(seed)+'/exp_state_dict.pkl'
+        # print(dir)
+        # evaluation(data, exp3, exp_path3, fig3, fig_avg_pnl, dir, train_end, coin_list_size, online_dist_dict, mul_runs=mul_runs, scaler= scaler, scaler_pot=2, title='Online distillation')
 
-        if self_distillation:
-            n_epochs_instance = 100
-            exp_path7 = Path(
-                PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[2] + 'experiment_online_dist_many_assets_best_teachers' + str(seed)).expanduser()
-            exp7 = MarketExperiment3(exp_path=exp_path7, use_sentiment=False)
-            fig7 = go.FigureWidget()
-            add_title(fig7, 'online distillation best teachers', 1200)
-            self_distill_dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[2] + 'experiment_online_dist_many_assets_best_teachers' + str(seed) + '/exp_state_dict.pkl'
-            evaluation(data, exp7, exp_path7, fig7, fig_avg_pnl, self_distill_dir, train_end, coin_list_size, self_online,
-                       mul_runs=mul_runs, scaler = scaler, scaler_pot=3, title='Online distillation best teachers')
+        # if self_distillation:
+        #     n_epochs_instance = 100
+        #     exp_path7 = Path(
+        #         PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[2] + 'experiment_online_dist_many_assets_best_teachers' + str(seed)).expanduser()
+        #     exp7 = MarketExperiment3(exp_path=exp_path7, use_sentiment=False)
+        #     fig7 = go.FigureWidget()
+        #     add_title(fig7, 'online distillation best teachers', 1200)
+        #     self_distill_dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[2] + 'experiment_online_dist_many_assets_best_teachers' + str(seed) + '/exp_state_dict.pkl'
+        #     evaluation(data, exp7, exp_path7, fig7, fig_avg_pnl, self_distill_dir, train_end, coin_list_size, self_online,
+        #                mul_runs=mul_runs, scaler = scaler, scaler_pot=3, title='Online distillation best teachers')
 
-            exp_path8 = Path(
-                PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
-                    2] + 'experiment_online_dist_many_assets_best_teachers_self' + str(seed)).expanduser()
-            exp8 = MarketExperiment3(exp_path=exp_path8, use_sentiment=False)
-            fig8 = go.FigureWidget()
-            add_title(fig8, 'online self distillation best teachers', 1200)
-            self_distill_dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
-                2] + 'experiment_online_dist_many_assets_best_teachers_self' + str(seed) + '/exp_state_dict.pkl'
-            evaluation(data, exp8, exp_path8, fig8, fig_avg_pnl, self_distill_dir, train_end, coin_list_size,
-                       self_online,
-                       mul_runs=mul_runs, scaler=scaler, scaler_pot=4, title='Online self distillation best teachers')
+        #     exp_path8 = Path(
+        #         PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
+        #             2] + 'experiment_online_dist_many_assets_best_teachers_self' + str(seed)).expanduser()
+        #     exp8 = MarketExperiment3(exp_path=exp_path8, use_sentiment=False)
+        #     fig8 = go.FigureWidget()
+        #     add_title(fig8, 'online self distillation best teachers', 1200)
+        #     self_distill_dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[
+        #         2] + 'experiment_online_dist_many_assets_best_teachers_self' + str(seed) + '/exp_state_dict.pkl'
+        #     evaluation(data, exp8, exp_path8, fig8, fig_avg_pnl, self_distill_dir, train_end, coin_list_size,
+        #                self_online,
+        #                mul_runs=mul_runs, scaler=scaler, scaler_pot=4, title='Online self distillation best teachers')
 
 
         """
@@ -367,7 +367,7 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
                        # advantage_type='exponential',
                        advantage_type='direct_reward',
                        gamma=0.99,
-                       n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, beta=20, n_teachers=n_teachers, seed=seed,
+                       n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, beta=20, n_teachers=num_teachers, seed=seed,
                        kernel_parameters=kernel_parameters1)
 
         # 6) Let's check the agent's performance
@@ -407,29 +407,29 @@ def test_distillations(data, start_training=False, seed=0, coin_list_size=26, tr
         """
         PKT - logits combined loss
         """
-        print('--------------------- Online Log-Pkt Distillation ---------------------')
-        if  start_training:
-            exp6.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
-                       ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
-                       tau=0.95, env_step_init=1.0,
-                       n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
-                       entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
-                       lr=learning_rate, lookahead=False,
-                       # advantage_type='exponential',
-                       advantage_type='direct_reward',
-                       gamma=0.99,
-                       n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, beta=10, n_teachers=n_teachers, seed=seed, kernel_parameters=kernel_parameters1)
+        # print('--------------------- Online Log-Pkt Distillation ---------------------')
+        # if  start_training:
+        #     exp6.train(data, model_params=model_params, env_params=env_params, train_range=("2000", "2021-03-14"),
+        #                ppo_clip=0.2, n_envs=128, n_reuse_value=1, use_amp=False, rew_limit=6., truncate_bptt=(5, 20),
+        #                tau=0.95, env_step_init=1.0,
+        #                n_epochs=n_epochs, validation_interval=val_interval, show_progress=True, weight_decay=0.,
+        #                entropy_weight=0.01, recompute_values=False, batch_size=32, value_horizon=np.inf,
+        #                lr=learning_rate, lookahead=False,
+        #                # advantage_type='exponential',
+        #                advantage_type='direct_reward',
+        #                gamma=0.99,
+        #                n_reuse_policy=3, n_reuse_aux=0, checkpoint_dir=None, beta=10, n_teachers=n_teachers, seed=seed, kernel_parameters=kernel_parameters1)
 
-            # 6) Let's check the agent's performance
-        dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[4] + 'experiment_pkt_logit_distillation_many_assets_testing' + str(seed) + '/exp_state_dict.pkl'
+        #     # 6) Let's check the agent's performance
+        # dir = PATH_EXPERIMENTS + PATH_DISTILLATION_NAMES[4] + 'experiment_pkt_logit_distillation_many_assets_testing' + str(seed) + '/exp_state_dict.pkl'
 
-        # dir = PATH_EXPERIMENTS+ NO_STEP + PATH_DISTILLATION_NAMES[4]+'experiment_pkt_logit_distillation_many_assets'+str(seed)+'/exp_state_dict.pkl'
+        # # dir = PATH_EXPERIMENTS+ NO_STEP + PATH_DISTILLATION_NAMES[4]+'experiment_pkt_logit_distillation_many_assets'+str(seed)+'/exp_state_dict.pkl'
 
-        print(dir)
-        evaluation(data, exp6, exp_path6, fig6, fig_avg_pnl, dir, train_end, coin_list_size, online_log_pkt,scaler=scaler, mul_runs=mul_runs, scaler_pot=4, title='pkt-logits')
+        # print(dir)
+        # evaluation(data, exp6, exp_path6, fig6, fig_avg_pnl, dir, train_end, coin_list_size, online_log_pkt,scaler=scaler, mul_runs=mul_runs, scaler_pot=4, title='pkt-logits')
 
 
-        if not mul_runs:
+        if mul_runs:
             # plt.savefig(PATH_FIGURES+"test_distillations_n_epochs_"+str(n_epochs)+"_"+str(seed)+".png")
             # plt.savefig(PATH_FIGURES+"test_distillations"+str(seed)+".png")
 
@@ -578,7 +578,7 @@ def test_distillation(exp=None, exp_path=None, data=None, start_training=False, 
     beta_values = [0.01, 1, 2, 3, 10, 100]
     # beta_values = [100]
     # beta_values = [0.00001, 0.0001, 0.0005, 0.001, 0.01]
-    start_training = True
+    start_training = False
     seed = 2
     # Testing Betas
     # fig_avg_pnl = go.FigureWidget()
@@ -1242,6 +1242,9 @@ def compute_std(filename='test'):
 
 
 
+
+
+
 def get_data(coin_list):
     # 1) Let's load data and generate features
     # coin_list = ['EURCHF']
@@ -1306,24 +1309,79 @@ def compute_avg_pnl(detailed_pnls, coin_list_size=17):
     coin_list_size=1
     return avg_train_pnl/coin_list_size, avg_test_pnl/coin_list_size, avg_only_test_pnl/coin_list_size
 
+def get_diverse_data(coin_list, PATH_TO_FEATHER, train_end="2021-03-14", resample='1H'):
+    # Existing code with modifications to handle specific coin_list
+    data, coin_list_size = generate_candle_features(train_end=train_end,
+                                                    pairs=coin_list,
+                                                    feather_folder=PATH_TO_FEATHER,
+                                                    timescale=resample,
+                                                    feature_config=(
+                                                        dict(name='int_bar_changes', func_name='inter_bar_changes',
+                                                             columns=['close', 'high', 'low'],
+                                                             use_pct=True),
+                                                        dict(name='int_bar_changes_10', func_name='inter_bar_changes',
+                                                             columns=['close', 'high', 'low'], use_pct=True,
+                                                             smoothing_window=10),
+                                                        dict(func_name='hl_to_pclose'),
+                                                        # Other configurations...
+                                                    ))
+    return data, coin_list_size
+def load_data_for_teachers(assigned_pairs, PATH_TO_FEATHER, train_end="2021-03-14", resample='1H'):
+    teacher_data = {}
+    for teacher, pairs in assigned_pairs.items():
+        teacher_data[teacher], _ = get_diverse_data(pairs, PATH_TO_FEATHER, train_end, resample)
+    return teacher_data
+
+def load_data_for_student(all_pairs, PATH_TO_FEATHER, train_end="2021-03-14", resample='1H'):
+    student_data, _ = get_diverse_data(all_pairs, PATH_TO_FEATHER, train_end, resample)
+    return student_data
+def assign_pairs_to_teachers(all_pairs, num_teachers):
+    assigned_pairs = {f"teacher_{i}": [] for i in range(num_teachers)}
+    pair_index = 0
+
+    while pair_index < len(all_pairs):
+        for i in range(num_teachers):
+            if pair_index < len(all_pairs):
+                assigned_pairs[f"teacher_{i}"].append(all_pairs[pair_index])
+                pair_index += 1
+
+    # Print the assigned pairs for each teacher
+    for i in range(num_teachers):
+        print(f"Teacher {i} specializes in pairs: {assigned_pairs[f'teacher_{i}']}")
+
+    return assigned_pairs
+
 
 if __name__ == '__main__':
+    PATH_TO_FEATHER = '/Users/georg/Source/Github/Thesis/financial-trading-in-RL/data/CryptoSentiment/'
     # coin_list = ['BTCUSDT', 'ETCUSDT', 'ADAUSDT', 'ATOMUSDT', 'AVAXUSDT', 'LTCUSDT', 'BCHUSDT', 'DOTUSDT']
-    # coin_list = ['BTCUSDT', 'ETCUSDT', 'ADAUSDT', 'LTCUSDT']
+    coin_list = ['BTCUSDT', 'ETCUSDT', 'ADAUSDT', 'LTCUSDT']
     # coin_list = ['BTCUSDT']
 
-    coin_list = ['ADAUSDT', 'ATOMUSDT', 'AVAXUSDT', 'AXSUSDT', 'BCHUSDT', 'BTCUSDT', 'DOTUSDT', 'EOSUSDT',
-                 'ETCUSDT', 'ETHUSDT', 'FILUSDT', 'IOTXUSDT', 'LTCUSDT', 'MANAUSDT', 'NEOUSDT', 'OMGUSDT',
-                 'SANDUSDT', 'TRXUSDT', 'UNIUSDT', 'VETUSDT', 'WAVESUSDT', 'XLMUSDT', 'XMRUSDT', 'XRPUSDT']
+    # coin_list = ['ADAUSDT', 'ATOMUSDT', 'AVAXUSDT', 'AXSUSDT', 'BCHUSDT', 'BTCUSDT', 'DOTUSDT', 'EOSUSDT',
+    #              'ETCUSDT', 'ETHUSDT', 'FILUSDT', 'IOTXUSDT', 'LTCUSDT', 'MANAUSDT', 'NEOUSDT', 'OMGUSDT',
+    #              'SANDUSDT', 'TRXUSDT', 'UNIUSDT', 'VETUSDT', 'WAVESUSDT', 'XLMUSDT', 'XMRUSDT', 'XRPUSDT']
 
     # coin_list = ['ADAUSDT', 'ATOMUSDT', 'AVAXUSDT', 'AXSUSDT', 'BCHUSDT', 'BTCUSDT', 'DOTUSDT', 'EOSUSDT',
     #              'ETCUSDT', 'ETHUSDT', 'FILUSDT', 'LTCUSDT', 'MANAUSDT', 'NEOUSDT', 'OMGUSDT',
     #              'SANDUSDT', 'TRXUSDT', 'UNIUSDT', 'VETUSDT', 'XLMUSDT', 'XMRUSDT', 'XRPUSDT']
 
-    coin_list = ['BTCUSDT']
+    # coin_list = ['BTCUSDT',]
     """
     Get data
     """
+    # Example usage:
+ # Assigning pairs to teachers
+    all_pairs = ['BTCUSDT', 'ETCUSDT', 'ADAUSDT', 'ATOMUSDT', 'AVAXUSDT', 'LTCUSDT', 'BCHUSDT', 'DOTUSDT']
+    num_teachers = 4
+    assigned_pairs = assign_pairs_to_teachers(all_pairs, num_teachers)
+
+# Loading data for teachers
+    teacher_data = load_data_for_teachers(assigned_pairs, PATH_TO_FEATHER)
+
+# Loading data for student
+    student_data = load_data_for_student(all_pairs, PATH_TO_FEATHER)
+
     data, coin_list_size = get_data(coin_list)
     print("---------------------------------------------")
     # print(data['ADAUSDT'])

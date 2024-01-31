@@ -86,14 +86,14 @@ def prepare_trajectory_windows(trajectories):
 
 
 """
-Class for deep reinforcement learning enviroment -> Agent
+Class for deep reinforcement learning environment -> Agent
 """
 
 
-class MarketExperiment6(TorchExperiment):
+class MarketExperiment3(TorchExperiment):
 
     def __init__(self, *args, **kwargs):
-        super(MarketExperiment6, self).__init__(*args, **kwargs)
+        super(MarketExperiment3, self).__init__(*args, **kwargs)
         self.model: Optional[MarketAgent] = None
         self.teacher_model = None
         self.optimizer = None
@@ -101,13 +101,13 @@ class MarketExperiment6(TorchExperiment):
     def eval(self, data, from_checkpoint: Optional[int] = None,
              show_progress=True, batch_size=3000, warmup_window=10,
              from_date=None, to_date=None, pairs=None, dir=None):
-
+        # self.model =None
         if self.model is None or isinstance(from_checkpoint, int):
             checkpoints = filter(lambda p: 'checkpoint' in p.stem and p.is_dir(), self.exp_path.iterdir())
 
             # last_checkpoint = sorted(checkpoints, key=lambda p: int(p.stem.split("_")[1]))[-1 or from_checkpoint]
             # exp_state_dict = torch.load(str(last_checkpoint / 'exp_state_dict.pkl'), map_location=self.device)
-            exp_state_dict = torch.load(dir, map_location=self.device)
+            exp_state_dict = torch.load(dir , map_location=self.device)
             print(exp_state_dict['lr_scheduler_state_dict'])
             model = MarketAgent(**self.db['model_params'])
             model.load_state_dict(exp_state_dict['model_state_dict'])
@@ -262,34 +262,33 @@ class MarketExperiment6(TorchExperiment):
         return manual_seed
 
     """
-    @param env_params: environment parameters -> max episodes steps, commission punishment
-    @param n_reuse_policy: number of reuse policy -> it provides a mechanism to reuse past policies
-     ( contributes to the overall goal of a lifelong reinforcement learning agent)     
-
+    @param: env_params: environment parameters -> max episodes steps, commission punishment
+    @param: n_reuse_policy: number of reuse policy -> it provides a mechanism to reuse past policies
+     ( contributes to the overall goal of a lifelong reinforcement learning agent)   
+    @param: policy constraint exploration to the close vicinity in the parameter space 
+    @param: gamma discount factor: it quantifies how much importance we give for future rewards  
+    
     online distillation
     """
-
     def train(self, data, model_params=None, env_params=None, n_epochs=100, batch_size=32, ppo_clip=0.2,
               entropy_weight=0.01, train_range=("2000", "2016"), show_progress=True, gamma=0.9, tau=0.95,
               value_horizon=np.inf, lr=5e-4, validation_interval=100, n_envs=128, n_reuse_policy=3, n_reuse_value=1,
               n_reuse_aux=0, weight_decay=0., checkpoint_dir=None, advantage_type='hyperbolic', use_amp=False,
               env_step_init=1.0, rew_limit=6., recompute_values=False,
-              truncate_bptt=(5, 20), lookahead=False, beta=1, n_teachers=5, seed = 0, kernel_parameters={}, self_distillation=False, dir_self_distillation=None):
+              truncate_bptt=(5, 20), lookahead=False, beta=1, n_teachers = 5, seed=0, kernel_parameters={}, self_distillation=False, dir_self_distillation=None):
 
-        beta1 = 10
-        beta2 = 20
         print(f"beta = {beta}")
         # if 'model_params' in self.db and model_params is not None:
         #     self.logger.warning("model_params is already set. New Values ignored.")
         self.db['model_params'] = model_params = self.db.get('model_params', model_params)
-
         # if 'env_params' in self.db and env_params is not None:
         #     self.logger.warning("env_params is already set. New Values ignored.")
         self.db['env_params'] = env_params = self.db.get('env_params', env_params)
 
+
         teachers = []
         for i in range(7):
-            teachers.append('teacher ' + str(i + 1))
+            teachers.append('teacher ' + str(i+1))
         self.model = None
         # Define the model -> Trading Agent
         if self.model is None:
@@ -297,6 +296,8 @@ class MarketExperiment6(TorchExperiment):
             num_inputs = list(data['feature_dict'].values())[0].shape[1]
             model_params['num_inputs'] = num_inputs
             self.db['model_params'] = model_params
+            manual_seed = self._fix_random_seed(1 + seed)
+
             model = MarketAgent(**model_params)
             model.to(self.device)
             self.model = model
@@ -333,12 +334,12 @@ class MarketExperiment6(TorchExperiment):
             model10 = MarketAgent(**model_params)
 
         model_dict = {'teacher 1': model1, 'teacher 2': model2, 'teacher 3': model3,
-                      'teacher 4': model4, 'teacher 5': model5, 'teacher 6': model6,
-                      'teacher 7': model7, 'teacher 8': model8, 'teacher 9': model9, 'teacher 10': model10,
-                      'student': model}
+                                 'teacher 4': model4, 'teacher 5': model5, 'teacher 6': model6,
+                      'teacher 7': model7, 'teacher 8': model8, 'teacher 9': model9, 'teacher 10': model10, 'student': model}
 
-        # # hold only the n_teacher from above model
-        # for t in range(n_teachers, len(model_dict) - 1):
+        print(seed)
+        # hold only the n_teacher from above model
+        # for t in range(n_teachers, len(model_dict)-1):
         #     del model_dict[teachers[t]]
 
         print(model_dict.keys())
@@ -393,12 +394,13 @@ class MarketExperiment6(TorchExperiment):
 
         # cross_entropy = MineCrossEntropy(dim=1)
         cross_entropy = nn.CrossEntropyLoss()
-        teacher_pnl = []
-        teacher_model_dict = []
-        self_teacher_dict = {}
-        best_teachers = True
         training_losses = []
         # Training loop
+        teacher_pnl=[]
+        teacher_model_dict = []
+        self_teacher_dict = {}
+        self_distillation_model_dict = {}
+        best_teachers = True
         for gi in tqdm(range(cur_train_step, n_epochs), smoothing=0., disable=not show_progress):
             """
             trajectories is a dictionary with:
@@ -451,7 +453,7 @@ class MarketExperiment6(TorchExperiment):
                     Self-online distillation:  for each batch data we will train both teacher and 
                     student model
                     """
-                    tain_eval_list = []
+                    train_eval_list = []
                     model_seed = seed + 1
                     for key, value in list(model_dict.items()):
                         value.train().cpu()
@@ -459,9 +461,11 @@ class MarketExperiment6(TorchExperiment):
                         opt_dict[key].zero_grad(set_to_none=True)
 
                         if key != 'student':
+
                             # Teacher ensemble training
                             train_eval = value.train_eval(actions=actions, features=features,
                                                           position=position)
+                            train_eval_list.append(train_eval)
                             policy_loss, pstats = ppo_categorical_policy_loss(actions, old_log_prob,
                                                                               Categorical(logits=old_logits_b),
                                                                               train_eval["pd"], advantage,
@@ -477,20 +481,21 @@ class MarketExperiment6(TorchExperiment):
                             """
                             Self distillation, distill knowledge from early instances in teacher model
                             """
-                            if self_distillation and gi >= 100:
+                            if self_distillation and gi>=100:
                                 """
                                 Start from 100 epoch to self distill in models
                                 """
-                                if gi == 100:  # save in 100 epoch all model
+                                if gi==100: # save in 100 epoch all model
                                     self_teacher_dict[key] = value
+                                    # teacher_model_dict.append(model[key])
                                 res_teacher_instance = self_teacher_dict[key].train_eval(actions=actions,
                                                                                           features=features,
                                                                                           position=position)
                                 self_distillation_loss = cross_entropy(train_eval['logits'],
-                                                                       res_teacher_instance['logits'])
+                                                                        res_teacher_instance['logits'])
 
-                                loss = policy_loss + value_loss + torch.tensor(self_distillation_loss,
-                                                                               requires_grad=True)
+                                loss = policy_loss + value_loss + torch.tensor(self_distillation_loss, requires_grad=True)
+
 
                                 # # Distill knowledge from a pre-trained model which is stored in files
                                 # exp_state_dict = torch.load(dir_self_distillation+str(model_seed)+'/exp_state_dict.pkl', map_location=self.device)
@@ -505,8 +510,10 @@ class MarketExperiment6(TorchExperiment):
                                 #                                        res_teacher_instance['logits'].detach())
                                 #
                                 # loss = policy_loss + value_loss + torch.tensor(self_distillation_loss, requires_grad=True)
+
                             else:
                                 loss = policy_loss + value_loss
+                            # loss = policy_loss + value_loss
 
                             avg_train_metrics['value_loss'].update(to_np(value_loss))
                             avg_train_metrics['policy_loss'].update(to_np(policy_loss))
@@ -522,40 +529,60 @@ class MarketExperiment6(TorchExperiment):
                             if gi == 50 and best_teachers:
                                 eval_dict = self.eval(data, show_progress=show_progress)
                                 # cur_performance = self.backtest(data, eval_dict, train_end=train_range[1])
-                                cur_performance_pnl = self.backtest(data, eval_dict, train_end=train_range[1],
-                                                                    commission=1e-3)
+                                cur_performance_pnl = self.backtest(data, eval_dict, train_end=train_range[1], commission=1e-3)
                                 # cur_performance_pnl = self.backtest(data, train_end=train_range[1],
                                 #                                     commission=2e-5)
                                 teacher_pnl.append(cur_performance_pnl['train_pnl'])
                                 print(cur_performance_pnl)
                                 teacher_model_dict.append(key)
                                 print(teacher_model_dict)
-                        else:  # Student model
+
+                        else: # Student model
                             """
                             Keep form model_dict only the best teacher after 50 epochs
                             """
-                            if gi == 50 and best_teachers:
-                                best_teachers = False
+                            if gi==50 and best_teachers:
+                                best_teachers=False
                                 print(teacher_pnl)
                                 print(teacher_model_dict)
-                                sorted_pnl_teachers = [x for _, x in sorted(zip(teacher_pnl, teacher_model_dict))]
+                                sorted_pnl_teachers = [x for _,x in sorted(zip(teacher_pnl, teacher_model_dict))]
                                 # delete the rest teachers
                                 print(sorted_pnl_teachers)
                                 for key in sorted_pnl_teachers[n_teachers:]:
                                     del model_dict[key]
                                 print(model_dict.keys())
 
+
                             train_eval = value.train_eval(actions=actions, features=features,
-                                                          position=position)
-                            student_features = value.get_features(actions=actions, features=features,
                                                           position=position)
                             # value_pred = to_np(train_eval['value'].squeeze()).astype(np.float32)
                             # advantage, returns = gae_engine.advantage(rews, value_pred)
 
                             policy_loss, pstats = ppo_categorical_policy_loss(actions, old_log_prob,
                                                                               Categorical(logits=old_logits_b),
-                                                                              train_eval["pd"], advantage,
-                                                                              ppo_clip=ppo_clip)
+                                                                              train_eval["pd"], advantage, ppo_clip=ppo_clip)
+
+                            distillation_losses = []
+                            # load the values from ensemble teachers for current actions
+                            # and take the mean of the output
+                            # for name, models in model_dict.items():
+                            #     res = models.train_eval(actions=actions, features=features,
+                            #                                       position=position)
+                            #     if name != 'student':
+                            #         # q(a|s) = res['logits'] -> teacher output distribution
+                            #         # p(a|s) = train_eval['logits'] -> student output distribution
+                            #         # cross_entropy(
+                            #         distillation_losses.append(
+                            #             cross_entropy(train_eval['logits'], res['logits'].detach_()))
+
+                            for models in train_eval_list:
+                                res = models['logits'].detach()
+                                distillation_losses.append(cross_entropy(train_eval['logits'], res))
+
+
+                            # average of ensemble
+                            tensor1 = torch.tensor(distillation_losses, requires_grad=True)
+                            distillation_loss = torch.mean(tensor1)
 
                             if entropy_weight > 0:
                                 entropy_loss = -entropy_weight * train_eval["pd"].entropy().mean()
@@ -564,59 +591,18 @@ class MarketExperiment6(TorchExperiment):
 
                             value_loss = torch.pow(train_eval['value'].squeeze(2) - returns, 2)[:, :-10].mean()
 
-                            pkt_losses = []
-                            logit_losses = []
-                            # load the values from ensemble teachers for current actions
-                            # and take the mean of the output
-                            # Combined logit loss and pkt loss
-                            for name, models in model_dict.items():
-
-                                if name != 'student':
-                                    # pkt loss
-                                    teacher_features = models.get_features(actions=actions, features=features,
-                                                          position=position)
-                                    # pkt_losses.append(
-                                    #     cosine_similarity_loss(student_features.reshape(batch_size, 40*42), teacher_features.reshape(batch_size, 40*42)))
-
-
-                                    # pkt_losses.append(
-                                    #     prob_loss(teacher_features=teacher_features.reshape(40, batch_size * 42),
-                                    #               student_features=student_features.reshape(40, batch_size * 42),
-                                    #               kernel_parameters=kernel_parameters))
-                                    pkt_losses.append(
-                                        prob_loss(teacher_features=teacher_features.reshape(40*batch_size, 42),
-                                                  student_features=student_features.reshape(40*batch_size, 42),
-                                                  kernel_parameters=kernel_parameters))
-
-                                    # Distillation Loss from logits
-                                    teacher_output = models.train_eval(actions=actions, features=features,
-                                                            position=position)
-                                    logit_losses.append(
-                                        cross_entropy(train_eval['logits'], teacher_output['logits'].detach_()))
-
-
-
-                            # average of ensemble
-                            tensor1 = torch.tensor(pkt_losses, requires_grad=True)
-                            pkt_loss = torch.mean(tensor1)
-
-                            tensor2 = torch.tensor(logit_losses, requires_grad=True)
-                            logit_loss = torch.mean(tensor2)
-                            # print(pkt_loss)
-                            beta1 = beta
-                            beta2 = beta
                             """
                             Self distillation, distill knowledge from early instances in student model
                             """
-                            if self_distillation and gi >= 100:
+                            if self_distillation and gi>=100:
 
                                 if gi == 100:
                                     student_instance = value
                                 res_student_instance = student_instance.train_eval(actions=actions,
-                                                                                   features=features,
-                                                                                   position=position)
+                                                                                              features=features,
+                                                                                              position=position)
                                 self_distillation_loss = cross_entropy(train_eval['logits'],
-                                                                       res_student_instance['logits'])
+                                                                           res_student_instance['logits'])
 
                                 # exp_state_dict = torch.load(dir_self_distillation+str(seed)+'/exp_state_dict.pkl', map_location=self.device)
                                 # # print(exp_state_dict['lr_scheduler_state_dict'])
@@ -626,13 +612,10 @@ class MarketExperiment6(TorchExperiment):
                                 # res_student_instance = student_model_instance.train_eval(actions=actions, features=features,
                                 #                           position=position)
                                 # self_distillation_loss = cross_entropy(train_eval['logits'], res_student_instance['logits'].detach())
-                                loss = policy_loss + value_loss + beta1 * logit_loss + beta2*pkt_loss + torch.tensor(
-                                    self_distillation_loss, requires_grad=True)
+                                loss = policy_loss + value_loss + beta*distillation_loss + torch.tensor(self_distillation_loss,requires_grad=True)
+
                             else:
-                                loss = policy_loss + value_loss + beta2 * pkt_loss + beta1*logit_loss
-                            # Final loss
-
-
+                                loss = policy_loss + value_loss + beta*distillation_loss
 
                             avg_train_metrics['value_loss'].update(to_np(value_loss))
                             avg_train_metrics['policy_loss'].update(to_np(policy_loss))
@@ -640,14 +623,21 @@ class MarketExperiment6(TorchExperiment):
                             loss.backward()
                             nn.utils.clip_grad_norm_(model.parameters(), 1.)
                             opt_dict['student'].step()
+
+                            # if key == 'student' and gi==5:
+                            #     print("mphka")
+                            #     break
+
                         if n_reuse_aux > 0:
                             with torch.no_grad():
-                                new_train_eval = model.train_eval(obs_tensor_dict['features'],
-                                                                  obs_tensor_dict['position'],
+                                new_train_eval = model.train_eval(obs_tensor_dict['features'], obs_tensor_dict['position'],
                                                                   action_tensor)
                                 new_train_eval['logits'].detach_()
                             if lookahead:
                                 opt_dict[key].slow_step()
+                        model_seed += 1
+
+
             # Aux Train
             for ti in range(n_reuse_aux):
                 for bi, (actions, features, position, rews, new_logits, value_pred, advantage, returns) in enumerate(
@@ -673,7 +663,8 @@ class MarketExperiment6(TorchExperiment):
             aux_lr_scheduler.step()
             lr_scheduler.step()
             avg_train_metrics = {k: v.mean for k, v in avg_train_metrics.items()}
-
+            # add losses in each epoch
+            # training_losses.append(loss.item())
             if ((gi + 1) % validation_interval) == 0 or gi==n_epochs-1:
                 self.checkpoint(global_step=gi, return_stats=return_stats,
                                 lr_scheduler_state_dict=lr_scheduler.state_dict(),
@@ -685,27 +676,7 @@ class MarketExperiment6(TorchExperiment):
                 # cur_performance_pnl = self.backtest(data, eval_dict, train_end=train_range[1], commission=1e-3)
                 cur_performance_pnl = self.backtest(data, eval_dict, train_end=train_range[1], commission=2e-5)
 
-                # num_trades_test = 1
-                # num_trades_train = 1
-                # num_exit_test = 0
-                # num_pos_test = 0
-                # num_exit_train = 0
-                # num_pos_train = 0
-                # for k in eval_dict.keys():
-                #     train = eval_dict[k][eval_dict[k].index < pd.to_datetime(train_range[1])].position.diff()
-                #     test = eval_dict[k][eval_dict[k].index >= pd.to_datetime(train_range[1])].position.diff()
-                #     num_trades_train += train[train != 0].shape[0]
-                #     num_trades_test += test[test != 0].shape[0]
-                #     exit_train = eval_dict[k][eval_dict[k].index < pd.to_datetime(train_range[1])].position
-                #     num_pos_train += exit_train.shape[0]
-                #     num_exit_train += exit_train[exit_train == 0].shape[0]
-                #     exit_test = eval_dict[k][eval_dict[k].index >= pd.to_datetime(train_range[1])].position
-                #     num_exit_test += exit_test[exit_test == 0].shape[0]
-                #     num_pos_test += exit_test.shape[0]
-                # num_trades_test /= len(eval_dict.keys())
-                # num_trades_train /= len(eval_dict.keys())
-                # num_exit_train /= num_pos_train
-                # num_exit_test /= num_pos_test
+
                 if tune.is_session_enabled() is not None:
                     for k, v in cur_performance.items():
                         summary_writer.add_scalar(f'eval/{k}', v, gi)
@@ -718,220 +689,16 @@ class MarketExperiment6(TorchExperiment):
                     for k, v in avg_train_metrics.items():
                         summary_writer.add_scalar(f'train/{k}', v, gi)
                     summary_writer.add_scalar(f'train/lr', lr_scheduler.get_last_lr()[0], gi)
-                    # summary_writer.add_scalar(f'trades/train_trades', num_trades_train, gi)
-                    # summary_writer.add_scalar(f'trades/test_trades', num_trades_test, gi)
-                    # summary_writer.add_scalar(f'trades/train_exit', num_exit_train, gi)
-                    # summary_writer.add_scalar(f'trades/test_exit', num_exit_test, gi)
+
                 else:
                     tune.report(global_step=gi, lr=lr_scheduler.get_last_lr()[0],
                                 **cur_performance, **metrics_dict, **model.weight_stats(),
                                 **avg_train_metrics
                                 )
-                # if ((gi + 1) % 5000) == 0:
-                #     detailed_pnls = self.detailed_backtest(data, eval_dict, train_end=train_range[1])
-                #     fig = go.FigureWidget()
-                #     for pair, pnls in detailed_pnls.items():
-                #         train_pnl = pnls['train_pnl'].cumsum()
-                #         test_pnl = train_pnl.values[-1] + pnls['test_pnl'].cumsum()
-                #         fig.add_scatter(x=train_pnl.index, y=train_pnl, legendgroup=pair, name=pair)
-                #         fig.add_scatter(x=test_pnl.index, y=test_pnl, legendgroup=pair, name=pair)
-                #     fig.write_html(f'plots/figure_{lr}_{gi+1}.html')
-                #     del detailed_pnls
+
                 del eval_dict
 
 
-def cosine_similarity_loss(output_net, target_net, eps=0.0000001):
-    # print(output_net.shape)
-    # print(target_net.shape)
-    # print(output_net)
-    # Normalize each vector by its norm
-    output_net_norm = torch.sqrt(torch.sum(output_net ** 2, dim=1, keepdim=True))
-    output_net = output_net / (output_net_norm + eps)
-    output_net[output_net != output_net] = 0
-
-    target_net_norm = torch.sqrt(torch.sum(target_net ** 2, dim=1, keepdim=True))
-    target_net = target_net / (target_net_norm + eps)
-    target_net[target_net != target_net] = 0
-
-    # Calculate the cosine similarity
-    # Here need to change cosine similarity to gaussian kernel for example to check
-    # if have any improvements in pkt distillation
-    model_similarity = torch.mm(output_net, output_net.transpose(0, 1))
-    target_similarity = torch.mm(target_net, target_net.transpose(0, 1))
-
-    # Scale cosine similarity to 0..1
-    model_similarity = (model_similarity + 1.0) / 2.0
-    target_similarity = (target_similarity + 1.0) / 2.0
-
-    # Transform them into probabilities
-    model_similarity = model_similarity / torch.sum(model_similarity, dim=1, keepdim=True)
-    target_similarity = target_similarity / torch.sum(target_similarity, dim=1, keepdim=True)
-
-    # Calculate the KL-divergence
-    loss = torch.mean(target_similarity * torch.log((target_similarity + eps) / (model_similarity + eps)))
-
-    return loss
-
-
-
-
-def pairwise_distances(a, b=None, eps=1e-6):
-    """
-    Calculates the pairwise distances between matrices a and b (or a and a, if b is not set)
-    :param a:
-    :param b:
-    :return:
-    """
-    if b is None:
-        b = a
-
-    aa = torch.sum(a ** 2, dim=1)
-    bb = torch.sum(b ** 2, dim=1)
-
-    aa = aa.expand(bb.size(0), aa.size(0)).t()
-    bb = bb.expand(aa.size(0), bb.size(0))
-
-    AB = torch.mm(a, b.transpose(0, 1))
-
-    dists = aa + bb - 2 * AB
-    dists = torch.clamp(dists, min=0, max=np.inf)
-    dists = torch.sqrt(dists + eps)
-    return dists
-
-def cosine_pairwise_similarities(features, eps=1e-6, normalized=True):
-    features_norm = torch.sqrt(torch.sum(features ** 2, dim=1, keepdim=True))
-    features = features / (features_norm + eps)
-    features[features != features] = 0
-    similarities = torch.mm(features, features.transpose(0, 1))
-
-    if normalized:
-        similarities = (similarities + 1.0) / 2.0
-    return similarities
-def prob_loss(teacher_features, student_features, eps=1e-6, kernel_parameters={}):
-    # Teacher kernel
-    if kernel_parameters['teacher'] == 'rbf':
-        teacher_d = pairwise_distances(teacher_features)
-        if 'teacher_sigma' in kernel_parameters:
-            sigma = kernel_parameters['teacher_sigma']
-        else:
-            sigma = 1
-        teacher_s = torch.exp(-teacher_d/sigma)
-    elif kernel_parameters['teacher'] == 'adaptive_rbf':
-        teacher_d = pairwise_distances(teacher_features)
-        sigma = torch.mean(teacher_d).detach()
-        teacher_s = torch.exp(-teacher_d/sigma)
-    elif kernel_parameters['teacher'] == 'cosine':
-        teacher_s = cosine_pairwise_similarities(teacher_features)
-    elif kernel_parameters['teacher'] == 'student_t':
-        teacher_d = pairwise_distances(teacher_features)
-        if 'teacher_d' in kernel_parameters:
-            d = kernel_parameters['teacher_d']
-        else:
-            d = 1
-        teacher_s = 1.0/(1+teacher_d**d)
-    elif kernel_parameters['teacher'] == 'cauchy':
-        teacher_d = pairwise_distances(teacher_features)
-        if 'teacher_sigma' in kernel_parameters:
-            sigma = kernel_parameters['teacher_sigma']
-        else:
-            sigma = 1
-        teacher_s = 1.0 / (1 + (teacher_d**2 + sigma**2))
-    elif kernel_parameters['teacher'] == 'combined':
-        teacher_d = pairwise_distances(teacher_features)
-        if 'teacher_d' in kernel_parameters:
-            d = kernel_parameters['teacher_d']
-        else:
-            d = 1
-        teacher_s_2 = 1.0 / (1 + teacher_d ** d)
-        teacher_s_1 = cosine_pairwise_similarities(teacher_features)
-    else:
-        assert False
-
-    # Student kernel
-    if kernel_parameters['student'] == 'rbf':
-        student_d = pairwise_distances(student_features)
-        if 'student_sigma' in kernel_parameters:
-            sigma = kernel_parameters['student_sigma']
-        else:
-            sigma = 1
-
-        student_s = torch.exp(-student_d/sigma)
-    elif kernel_parameters['student'] == 'adaptive_rbf':
-        student_d = pairwise_distances(student_features)
-        sigma = torch.mean(student_d).detach()
-        student_s = torch.exp(-student_d/sigma)
-
-    elif kernel_parameters['student'] == 'cosine':
-        student_s = cosine_pairwise_similarities(student_features)
-
-    elif kernel_parameters['student'] == 'student_t':
-        student_d = pairwise_distances(student_features)
-        if 'student_d' in kernel_parameters:
-            d = kernel_parameters['student_d']
-        else:
-            d = 1
-        student_s = 1.0 / (1+student_d**d)
-
-    elif kernel_parameters['student'] == 'cauchy':
-        student_d = pairwise_distances(student_features)
-        if 'student_sigma' in kernel_parameters:
-            sigma = kernel_parameters['student_sigma']
-        else:
-            sigma = 1
-        student_s = 1.0 / (1+(student_d**2 / sigma **2))
-    elif kernel_parameters['student'] == 'combined':
-
-        student_d = pairwise_distances(student_features)
-        if 'student_sigma' in kernel_parameters:
-            d = kernel_parameters['student_sigma']
-        else:
-            d = 1
-        student_s_2 = 1.0 / (1 + student_d ** d)
-        student_s_1 = cosine_pairwise_similarities(student_features)
-    else:
-        assert False
-
-    if kernel_parameters['teacher'] == 'combined':
-        # Transform them into probabilities
-        teacher_s_1 = teacher_s_1 / torch.sum(teacher_s_1, dim=1, keepdim=True)
-        student_s_1 = student_s_1 / torch.sum(student_s_1, dim=1, keepdim=True)
-
-        teacher_s_2 = teacher_s_2 / torch.sum(teacher_s_2, dim=1, keepdim=True)
-        student_s_2 = student_s_2 / torch.sum(student_s_2, dim=1, keepdim=True)
-
-    else:
-        # Transform them into probabilities
-        teacher_s = teacher_s / torch.sum(teacher_s, dim=1, keepdim=True)
-        student_s = student_s / torch.sum(student_s, dim=1, keepdim=True)
-
-    if 'loss' in kernel_parameters:
-        if kernel_parameters['loss'] == 'kl':
-            loss = teacher_s * torch.log(eps + (teacher_s) / (eps + student_s))
-        elif kernel_parameters['loss'] == 'abs':
-            loss = torch.abs(teacher_s - student_s)
-        elif kernel_parameters['loss'] == 'squared':
-            loss = (teacher_s - student_s) ** 2
-        elif kernel_parameters['loss'] == 'jeffreys':
-            loss = (teacher_s - student_s) * (torch.log(teacher_s) - torch.log(student_s))
-        elif kernel_parameters['loss'] == 'exponential':
-            loss = teacher_s * (torch.log(teacher_s) - torch.log(student_s)) ** 2
-        elif kernel_parameters['loss'] == 'kagan':
-            loss = ((teacher_s - student_s) ** 2) / teacher_s
-        elif kernel_parameters['loss'] == 'combined':
-            # Jeffrey's  combined
-            loss1 = (teacher_s_1 - student_s_1) * (torch.log(teacher_s_1) - torch.log(student_s_1))
-            loss2 = (teacher_s_2 - student_s_2) * (torch.log(teacher_s_2) - torch.log(student_s_2))
-        else:
-            assert False
-    else:
-        loss = teacher_s * torch.log(eps + (teacher_s) / (eps + student_s))
-
-    if 'loss' in kernel_parameters and kernel_parameters['loss'] == 'combined':
-        loss = torch.mean(loss1) + torch.mean(loss2)
-    else:
-        loss = torch.mean(loss)
-
-    return loss
 
 class MineCrossEntropy(nn.Module):
     def __init__(self, dim=-1):

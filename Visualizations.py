@@ -9,8 +9,8 @@ import warnings
 warnings.filterwarnings('ignore')
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-PATH_EXPERIMENTS = 'saved_models_experiments/'
-PATH_FIGURES = 'experiments_figures/'
+PATH_EXPERIMENTS = '/Users/georg/Source/Github/Thesis/financial-trading-in-RL/saved_models_experiments/'
+PATH_FIGURES = '/Users/georg/Source/Github/Thesis/financial-trading-in-RL/experiments_figures/'
 
 
 def adjust_lightness(color, amount=0.5):
